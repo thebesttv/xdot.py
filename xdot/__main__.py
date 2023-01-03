@@ -37,6 +37,7 @@ Shortcuts:
   Q                         quit
   P                         print
   T                         toggle show/hide toolbar
+  W                         zoom to fit
   Escape                    halt animation
   Ctrl-drag                 zoom in/out
   Shift-drag                zooms an area
@@ -44,7 +45,7 @@ Shortcuts:
     )
     parser.add_argument(
         'inputfiles', metavar='file', nargs='+',
-        help='input file to be viewed')
+        help='input file to be viewed, use \'-\' to read from stdin')
     parser.add_argument(
         '-f', '--filter', choices=['dot', 'neato', 'twopi', 'circo', 'fdp'],
         dest='filter', default='dot', metavar='FILTER',

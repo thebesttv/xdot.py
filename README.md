@@ -89,27 +89,34 @@ When running _xdot.py_ from its source tree, you can run it by first setting `PY
 
 You can also pass the following options:
 
-    Usage:
-    	xdot.py [file|-]
-    
-    Options:
+    usage: xdot.py [-h] [-f FILTER] [-n] [-g GEOMETRY] [--hide-toolbar]
+                   file [file ...]
+
+    xdot.py is an interactive viewer for graphs written in Graphviz's dot language.
+
+    positional arguments:
+      file                  input file to be viewed, use '-' to read from stdin
+
+    options:
       -h, --help            show this help message and exit
-      -f FILTER, --filter=FILTER
+      -f FILTER, --filter FILTER
                             graphviz filter: dot, neato, twopi, circo, or fdp
                             [default: dot]
       -n, --no-filter       assume input is already filtered into xdot format (use
                             e.g. dot -Txdot)
-      -g GEOMETRY           default window size in form WxH
-    
+      -g GEOMETRY, --geometry GEOMETRY
+                            default window size in form WxH
+      --hide-toolbar        Hides the toolbar on start.
+
     Shortcuts:
-      Up, Down, Left, Right     scroll
+      Left, Right               previous/next file
       PageUp, +, =              zoom in
       PageDown, -               zoom out
       R                         reload dot file
       F                         find
       Q                         quit
       P                         print
-      T                         toggle toolbar
+      T                         toggle show/hide toolbar
       W                         zoom to fit
       Escape                    halt animation
       Ctrl-drag                 zoom in/out
