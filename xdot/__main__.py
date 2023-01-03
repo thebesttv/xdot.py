@@ -80,7 +80,7 @@ Shortcuts:
         except ValueError:
             parser.error('invalid window geometry')
 
-    win = DotWindow(inputfiles=inputfiles, stdin_content=stdin_content, width=width, height=height)
+    win = DotWindow(width=width, height=height, inputfiles=inputfiles, stdin_content=stdin_content)
     win.connect('delete-event', Gtk.main_quit)
     win.set_filter(options.filter)
     win.set_current_file(0)

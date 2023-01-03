@@ -564,7 +564,7 @@ class DotWindow(Gtk.Window):
 
     base_title = 'Dot Viewer'
 
-    def __init__(self, inputfiles=None, stdin_content=None, widget=None, width=512, height=512):
+    def __init__(self, widget=None, width=512, height=512, inputfiles=None, stdin_content=None):
         Gtk.Window.__init__(self)
 
         self.inputfiles = inputfiles
