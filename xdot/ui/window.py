@@ -564,7 +564,7 @@ class DotWindow(Gtk.Window):
 
     base_title = 'Dot Viewer'
 
-    def __init__(self, inputfiles, stdin_content=None, widget=None, width=512, height=512):
+    def __init__(self, inputfiles=None, stdin_content=None, widget=None, width=512, height=512):
         Gtk.Window.__init__(self)
 
         self.inputfiles = inputfiles
@@ -858,6 +858,10 @@ class DotWindow(Gtk.Window):
 
     def set_forward_backward_sensitivity(self):
         '''Determine if the user can go forward or back'''
+        if not self.inputfiles:
+            self.forward_action.set_sensitive(False)
+            self.back_action.set_sensitive(False)
+            return
         self.forward_action.set_sensitive(self.current_file_index + 1 < len(self.inputfiles))
         self.back_action.set_sensitive(self.current_file_index > 0)
 
