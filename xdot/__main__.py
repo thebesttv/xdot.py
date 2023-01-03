@@ -43,7 +43,7 @@ Shortcuts:
 '''
     )
     parser.add_argument(
-        'inputfile', metavar='file', nargs='?',
+        'inputfiles', metavar='file', nargs='+',
         help='input file to be viewed')
     parser.add_argument(
         '-f', '--filter', choices=['dot', 'neato', 'twopi', 'circo', 'fdp'],
@@ -63,7 +63,15 @@ Shortcuts:
         help='Hides the toolbar on start.')
 
     options = parser.parse_args()
-    inputfile = options.inputfile
+    inputfiles = options.inputfiles
+
+    # if input file contains stdin (-), read from stdin and store it
+    stdin_content = sys.stdin.buffer.read() if '-' in inputfiles else None
+
+    # ensure that none of the input files are empty
+    if '' in inputfiles:
+        print("Error, some input files are empty!")
+        sys.exit(1)
 
     width, height = 610, 610
     if options.geometry:
@@ -72,14 +80,10 @@ Shortcuts:
         except ValueError:
             parser.error('invalid window geometry')
 
-    win = DotWindow(width=width, height=height)
+    win = DotWindow(inputfiles=inputfiles, stdin_content=stdin_content, width=width, height=height)
     win.connect('delete-event', Gtk.main_quit)
     win.set_filter(options.filter)
-    if inputfile and len(inputfile) >= 1:
-        if inputfile == '-':
-            win.set_dotcode(sys.stdin.buffer.read())
-        else:
-            win.open_file(inputfile)
+    win.set_current_file(0)
 
     if options.hide_toolbar:
         win.uimanager.get_widget('/ToolBar').set_visible(False)
