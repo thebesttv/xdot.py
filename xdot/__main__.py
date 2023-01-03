@@ -29,7 +29,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Shortcuts:
-  Up, Down, Left, Right     scroll
+  Left, Right               previous/next file
   PageUp, +, =              zoom in
   PageDown, -               zoom out
   R                         reload dot file
@@ -37,14 +37,15 @@ Shortcuts:
   Q                         quit
   P                         print
   T                         toggle show/hide toolbar
+  W                         zoom to fit
   Escape                    halt animation
   Ctrl-drag                 zoom in/out
   Shift-drag                zooms an area
 '''
     )
     parser.add_argument(
-        'inputfile', metavar='file', nargs='?',
-        help='input file to be viewed')
+        'inputfiles', metavar='file', nargs='+',
+        help='input file to be viewed, use \'-\' to read from stdin')
     parser.add_argument(
         '-f', '--filter', choices=['dot', 'neato', 'twopi', 'circo', 'fdp'],
         dest='filter', default='dot', metavar='FILTER',
@@ -63,7 +64,15 @@ Shortcuts:
         help='Hides the toolbar on start.')
 
     options = parser.parse_args()
-    inputfile = options.inputfile
+    inputfiles = options.inputfiles
+
+    # if input file contains stdin (-), read from stdin and store it
+    stdin_content = sys.stdin.buffer.read() if '-' in inputfiles else None
+
+    # ensure that none of the input files are empty
+    if '' in inputfiles:
+        print("Error, some input files are empty!")
+        sys.exit(1)
 
     width, height = 610, 610
     if options.geometry:
@@ -72,14 +81,10 @@ Shortcuts:
         except ValueError:
             parser.error('invalid window geometry')
 
-    win = DotWindow(width=width, height=height)
+    win = DotWindow(width=width, height=height, inputfiles=inputfiles, stdin_content=stdin_content)
     win.connect('delete-event', Gtk.main_quit)
     win.set_filter(options.filter)
-    if inputfile and len(inputfile) >= 1:
-        if inputfile == '-':
-            win.set_dotcode(sys.stdin.buffer.read())
-        else:
-            win.open_file(inputfile)
+    win.set_current_file(0)
 
     if options.hide_toolbar:
         win.uimanager.get_widget('/ToolBar').set_visible(False)

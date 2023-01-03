@@ -58,8 +58,10 @@ class DotWidget(Gtk.DrawingArea):
     filter = 'dot'
     graphviz_version = None
 
-    def __init__(self):
+    def __init__(self, dot_window=None):
         Gtk.DrawingArea.__init__(self)
+
+        self.dot_window: DotWindow = dot_window
 
         self.graph = Graph()
         self.openfilename = None
@@ -301,21 +303,17 @@ class DotWidget(Gtk.DrawingArea):
 
     def on_key_press_event(self, widget, event):
         if event.keyval == Gdk.KEY_Left:
-            self.x -= self.POS_INCREMENT/self.zoom_ratio
-            self.queue_draw()
-            return True
+            if self.dot_window:
+                self.dot_window.on_go_back_file()
+                return True
+            else:
+                return False
         if event.keyval == Gdk.KEY_Right:
-            self.x += self.POS_INCREMENT/self.zoom_ratio
-            self.queue_draw()
-            return True
-        if event.keyval == Gdk.KEY_Up:
-            self.y -= self.POS_INCREMENT/self.zoom_ratio
-            self.queue_draw()
-            return True
-        if event.keyval == Gdk.KEY_Down:
-            self.y += self.POS_INCREMENT/self.zoom_ratio
-            self.queue_draw()
-            return True
+            if self.dot_window:
+                self.dot_window.on_go_forward_file()
+                return True
+            else:
+                return False
         if event.keyval in (Gdk.KEY_Page_Up,
                             Gdk.KEY_plus,
                             Gdk.KEY_equal,
@@ -564,8 +562,12 @@ class DotWindow(Gtk.Window):
 
     base_title = 'Dot Viewer'
 
-    def __init__(self, widget=None, width=512, height=512):
+    def __init__(self, widget=None, width=512, height=512, inputfiles=None, stdin_content=None):
         Gtk.Window.__init__(self)
+
+        self.inputfiles = inputfiles
+        self.current_file_index = 0
+        self.stdin_content = stdin_content
 
         self.graph = Graph()
 
@@ -577,7 +579,7 @@ class DotWindow(Gtk.Window):
         vbox = Gtk.VBox()
         window.add(vbox)
 
-        self.dotwidget = widget or DotWidget()
+        self.dotwidget = widget or DotWidget(self)
         self.dotwidget.connect("error", lambda e, m: self.error_dialog(m))
         self.dotwidget.connect("history", self.on_history)
 
@@ -608,13 +610,15 @@ class DotWindow(Gtk.Window):
 
         self.back_action = Gtk.Action('Back', None, None, Gtk.STOCK_GO_BACK)
         self.back_action.set_sensitive(False)
-        self.back_action.connect("activate", self.dotwidget.on_go_back)
+        self.back_action.connect("activate", self.on_go_back_file)
         actiongroup.add_action(self.back_action)
 
         self.forward_action = Gtk.Action('Forward', None, None, Gtk.STOCK_GO_FORWARD)
         self.forward_action.set_sensitive(False)
-        self.forward_action.connect("activate", self.dotwidget.on_go_forward)
+        self.forward_action.connect("activate", self.on_go_forward_file)
         actiongroup.add_action(self.forward_action)
+
+        self.set_forward_backward_sensitivity()
 
         find_action = FindMenuToolAction("Find", None,
                                          "Find a node by name", None)
@@ -841,3 +845,36 @@ class DotWindow(Gtk.Window):
     def on_history(self, action, has_back, has_forward):
         self.back_action.set_sensitive(has_back)
         self.forward_action.set_sensitive(has_forward)
+
+    def set_current_file(self, idx):
+        '''Open and display the idx-th file'''
+        file = self.inputfiles[idx]
+        if file == '-': # stdin
+            self.set_dotcode(self.stdin_content)
+        else:           # regular file
+            self.open_file(file)
+
+    def set_forward_backward_sensitivity(self):
+        '''Determine if the user can go forward or back'''
+        if not self.inputfiles:
+            self.forward_action.set_sensitive(False)
+            self.back_action.set_sensitive(False)
+            return
+        self.forward_action.set_sensitive(self.current_file_index + 1 < len(self.inputfiles))
+        self.back_action.set_sensitive(self.current_file_index > 0)
+
+    def on_go_back_file(self, action=None):
+        '''Go to the previous file'''
+        if not self.back_action.is_sensitive():
+            return
+        self.current_file_index -= 1
+        self.set_current_file(self.current_file_index)
+        self.set_forward_backward_sensitivity()
+
+    def on_go_forward_file(self, action=None):
+        '''Go to the next file'''
+        if not self.forward_action.is_sensitive():
+            return
+        self.current_file_index += 1
+        self.set_current_file(self.current_file_index)
+        self.set_forward_backward_sensitivity()
