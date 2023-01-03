@@ -29,7 +29,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Shortcuts:
-  Up, Down, Left, Right     scroll
+  Left, Right               previous/next file
   PageUp, +, =              zoom in
   PageDown, -               zoom out
   R                         reload dot file
